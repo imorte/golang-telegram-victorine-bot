@@ -41,20 +41,20 @@ func regpi(msg *tgbotapi.Message) {
 }
 
 func showpid(msg *tgbotapi.Message) {
-	row, err := db.Query("SELECT * FROM pidors")
+	row, err := db.Query("SELECT pidor FROM pidors")
 	if err != nil {
 		err.Error()
 	}
 
 	output := "Кандидаты в пидоры дня:\n"
-	var p Pidors
+	var pidorName string
 	for row.Next() {
-		err = row.Scan(&p.Id, &p.Pidor, &p.Score, &p.Wich_group)
+		err = row.Scan(&pidorName)
 
 		if err != nil {
 			err.Error()
 		}
-		output += p.Pidor + "\n"
+		output += pidorName + "\n"
 	}
 	output += " Хочешь себя увидеть тут? \nЖми /regpi"
 	bot.Send(tgbotapi.NewMessage(msg.Chat.ID, output))
