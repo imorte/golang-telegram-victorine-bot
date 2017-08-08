@@ -67,7 +67,7 @@ func main() {
 			case "pidor":
 				fmt.Println("nothing here")
 			case "pidorstat":
-				fmt.Println("nothing here")
+				pidorStat(msg)
 			}
 		}
 	}
