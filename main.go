@@ -1,7 +1,7 @@
 package main
 
 import (
-	// "database/sql"
+	"database/sql"
 	"fmt"
 	"log"
 
@@ -11,11 +11,14 @@ import (
 )
 
 const (
-	TIMEOUT = 60
+	TIMEOUT       = 60
+	DATABASE      = "sqlite3"
+	DATABASE_NAME = "db.sqlite3"
 )
 
 var (
 	bot *tgbotapi.BotAPI
+	db  *sql.DB
 )
 
 // U must create bot_tocken.go file, which include TOKEN variable in global package scope
@@ -27,11 +30,19 @@ func init() {
 		err.Error()
 	}
 	bot.Debug = true
-
 	log.Printf("Authorized on account %s", bot.Self.UserName)
+
+	db, err = sql.Open(DATABASE, DATABASE_NAME)
+
+	if err != nil {
+		err.Error()
+	}
 }
 
 func main() {
+
+	defer db.Close()
+
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = TIMEOUT
 
@@ -52,7 +63,7 @@ func main() {
 			case "regpi":
 				regpi(msg)
 			case "showpid":
-				fmt.Println("nothing here")
+				showpid(msg)
 			case "pidor":
 				fmt.Println("nothing here")
 			case "pidorstat":
