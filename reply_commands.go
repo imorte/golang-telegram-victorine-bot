@@ -9,14 +9,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func reverseSlice(a []string) []string {
-	for i := len(a)/2 - 1; i >= 0; i-- {
-		opp := len(a) - 1 - i
-		a[i], a[opp] = a[opp], a[i]
-	}
-	return a
-}
-
 func regpi(msg *tgbotapi.Message) {
 	var result sql.NullInt64
 	row := db.QueryRow(
@@ -69,7 +61,7 @@ func showpid(msg *tgbotapi.Message) {
 }
 
 func pidorStat(msg *tgbotapi.Message) {
-	row, err := db.Query("SELECT pidor, score FROM pidors ORDER BY score")
+	row, err := db.Query("SELECT pidor, score FROM pidors ORDER BY score DESC")
 
 	if err != nil {
 		err.Error()
@@ -81,7 +73,6 @@ func pidorStat(msg *tgbotapi.Message) {
 	var flag bool
 
 	output := "Статистика:\n"
-	users := make([]string, 0)
 	for row.Next() {
 		err = row.Scan(&pidor, &score)
 		if err != nil {
@@ -89,13 +80,8 @@ func pidorStat(msg *tgbotapi.Message) {
 		}
 		if score != 0 {
 			flag = true
-			users = append(users, fmt.Sprintf("%s: %d\n", pidor, score))
+			output += fmt.Sprintf("%s: %d\n", pidor, score)
 		}
-	}
-
-	reverseSlice(users)
-	for _, element := range users {
-		output += element
 	}
 
 	if flag {
