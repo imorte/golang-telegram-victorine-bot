@@ -26,7 +26,7 @@ func regpi(msg *tgbotapi.Message) {
 		_, err = db.Exec(
 			"INSERT INTO pidors (pidor, wich_group, score) VALUES (?, ?, ?)",
 			"@"+msg.Chat.UserName,
-			string(msg.Chat.ID), // это ваще то что надо, мне кажется что нет, но это не точно
+			fmt.Sprintf("%d", msg.Chat.ID),
 			0,
 		)
 		if err != nil {
