@@ -92,3 +92,36 @@ func pidorStat(msg *tgbotapi.Message) {
 
 	bot.Send(reply)
 }
+
+func startQuiz(msg *tgbotapi.Message) {
+	rows, err := db.Query("SELECT COUNT (*) FROM pidors")
+
+	if err != nil {
+		fmt.Printf("%s", err)
+	}
+
+	rowsCounted := checkCount(rows)
+
+	println(rowsCounted)
+	getWeather()
+
+	//fmt.Println(cast(50, 1, 100, 1, 10))
+}
+
+func cast(x int, in_min int, in_max int, out_min int, out_max int) (int) {
+	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+}
+
+func checkCount(rows *sql.Rows) (count int) {
+	for rows.Next() {
+		err:= rows.Scan(&count)
+		checkErr(err)
+	}
+	return count
+}
+
+func checkErr(err error) {
+	if err != nil {
+		panic(err)
+	}
+}

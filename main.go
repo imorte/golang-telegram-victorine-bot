@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -21,7 +20,7 @@ var (
 	db  *sql.DB
 )
 
-// U must create bot_tocken.go file, which include TOKEN variable in global package scope
+// You must create bot_token.go file, which include TOKEN variable in global package scope
 func init() {
 	var err error
 	bot, err = tgbotapi.NewBotAPI(TOKEN)
@@ -65,7 +64,7 @@ func main() {
 			case "showpid":
 				showpid(msg)
 			case "pidor":
-				fmt.Println("nothing here")
+				startQuiz(msg)
 			case "pidorstat":
 				pidorStat(msg)
 			}
