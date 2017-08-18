@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"net/http"
 	"io/ioutil"
-	"strings"
+	"log"
+	"net/http"
 	"strconv"
 )
 
@@ -22,6 +22,16 @@ type Content struct {
 	} `json:"query"`
 }
 
+func (c Content) Convert() (converted int) {
+	str := c.Query.Results.Channel.Item.Condition.Temp
+	var err error
+	converted, err = strconv.Atoi(str)
+	if err != nil {
+		log.Println(err)
+	}
+	return
+}
+
 func getWeather() {
 	var fahr Content
 	var fahrOy Content
@@ -31,7 +41,7 @@ func getWeather() {
 	res, err := http.Get(weatherMoscow)
 
 	if err != nil {
-		err.Error()
+		log.Println(err)
 	}
 
 	defer res.Body.Close()
@@ -39,14 +49,17 @@ func getWeather() {
 	body, err := ioutil.ReadAll(res.Body)
 
 	if err != nil {
-		err.Error()
+		log.Println(err)
 	}
-	_ = json.Unmarshal(body, &fahr)
+	err = json.Unmarshal(body, &fahr)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	res, err = http.Get(weatherOymyakon)
 
 	if err != nil {
-		err.Error()
+		log.Println(err)
 	}
 
 	defer res.Body.Close()
@@ -54,14 +67,15 @@ func getWeather() {
 	body, err = ioutil.ReadAll(res.Body)
 
 	if err != nil {
-		err.Error()
+		log.Println(err)
 	}
-	_ = json.Unmarshal(body, &fahrOy)
+	err = json.Unmarshal(body, &fahrOy)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	var result int
-
-	// to int
-	result := fahr.Query.Results.Channel.Item.Condition.Temp + fahrOy.Query.Results.Channel.Item.Condition.Temp) / 2
+	result = (fahr.Convert() + fahrOy.Convert()) / 2
 
 	println(result)
 
