@@ -3,19 +3,21 @@ package main
 import (
 	"database/sql"
 	"fmt"
-
 	"gopkg.in/telegram-bot-api.v4"
-
 	_ "github.com/mattn/go-sqlite3"
+	"time"
+	"math/rand"
 )
 
-func regpi(msg *tgbotapi.Message) {
+func regpi(msg *tgbotapi.Message, update tgbotapi.Update) {
 	var result sql.NullInt64
 	row := db.QueryRow(
 		"SELECT id FROM pidors WHERE pidor=?",
 		"@"+msg.From.UserName,
 	)
+
 	err := row.Scan(&result)
+
 	if err != nil {
 		err.Error()
 	}
@@ -24,19 +26,22 @@ func regpi(msg *tgbotapi.Message) {
 
 	if !result.Valid {
 		_, err = db.Exec(
-			"INSERT INTO pidors (pidor, wich_group, score) VALUES (?, ?, ?)",
-			"@"+msg.Chat.UserName,
-			string(msg.Chat.ID), // это ваще то что надо, мне кажется что нет, но это не точно
+			"INSERT INTO pidors (pidor, pidorId, wich_group, score) VALUES (?, ?, ?, ?)",
+			"@"+msg.From.UserName,
+			msg.From.ID,
+			msg.Chat.ID,
 			0,
 		)
 		if err != nil {
 			err.Error()
 		}
-		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Ты регнулся %s", msg.From.UserName))
+		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Ты регнулся, @%s", msg.From.UserName))
 	} else {
-		reply = tgbotapi.NewMessage(msg.Chat.ID, "Ты уже зарегистрирован")
+		reply = tgbotapi.NewMessage(msg.Chat.ID, "Ты уже в игре!")
 	}
 
+	db.Close()
+	reply.ReplyToMessageID = update.Message.MessageID
 	bot.Send(reply)
 }
 
@@ -56,7 +61,7 @@ func showpid(msg *tgbotapi.Message) {
 		}
 		output += pidorName + "\n"
 	}
-	output += " Хочешь себя увидеть тут? \nЖми /regpi"
+	output += " Хочешь себя увидеть тут?\nЖми /regpi"
 	bot.Send(tgbotapi.NewMessage(msg.Chat.ID, output))
 }
 
@@ -94,22 +99,33 @@ func pidorStat(msg *tgbotapi.Message) {
 }
 
 func startQuiz(msg *tgbotapi.Message) {
-	rows, err := db.Query("SELECT COUNT (*) FROM pidors")
+	var thePidor int
 
+	rows, err := db.Query("SELECT COUNT (*) FROM pidors")
 	if err != nil {
 		fmt.Printf("%s", err)
 	}
 
 	rowsCounted := checkCount(rows)
 
-	println(rowsCounted)
-	getWeather()
+	moscowWeather, oymyakonWeather := getWeather()
+	averageWeather := (moscowWeather + oymyakonWeather) / 2
 
-	//fmt.Println(cast(50, 1, 100, 1, 10))
+	calculatedWeather := cast(averageWeather, oymyakonWeather, moscowWeather, 1, rowsCounted)
+
+	if calculatedWeather > rowsCounted / 2 {
+		thePidor = random(1, calculatedWeather / 2)
+	} else {
+		thePidor = random(calculatedWeather, rowsCounted)
+	}
+
+	println(thePidor)
+
+
 }
 
-func cast(x int, in_min int, in_max int, out_min int, out_max int) (int) {
-	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+func cast(x int, inMin int, inMax int, outMin int, outMax int) (int) {
+	return (x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin
 }
 
 func checkCount(rows *sql.Rows) (count int) {
@@ -124,4 +140,9 @@ func checkErr(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func random(min, max int) int {
+	rand.Seed(time.Now().Unix())
+	return rand.Intn(max - min) + min
 }
