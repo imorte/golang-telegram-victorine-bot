@@ -10,7 +10,7 @@
  package main
  
  var (
-  TOKEN = "Your telegram bot api tocken"
+  TOKEN = "Your telegram bot api token"
  )
  
 ```
