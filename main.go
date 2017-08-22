@@ -2,9 +2,9 @@ package main
 
 import (
 	"database/sql"
-	"log"
 	_ "github.com/mattn/go-sqlite3"
 	"gopkg.in/telegram-bot-api.v4"
+	"log"
 )
 
 const (
@@ -57,14 +57,14 @@ func main() {
 			command := msg.Command()
 
 			switch command {
-				case "regpi":
-					regpi(msg, update)
-				case "showpid":
-					showpid(msg)
-				case "pidor":
-					startQuiz(msg)
-				case "pidorstat":
-					pidorStat(msg)
+			case "regpi":
+				regpi(msg, update)
+			case "showpid":
+				showpid(msg)
+			case "pidor":
+				startQuiz(msg)
+			case "pidorstat":
+				pidorStat(msg)
 			}
 		}
 	}

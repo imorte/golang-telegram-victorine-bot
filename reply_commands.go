@@ -3,10 +3,10 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"gopkg.in/telegram-bot-api.v4"
 	_ "github.com/mattn/go-sqlite3"
-	"time"
+	"gopkg.in/telegram-bot-api.v4"
 	"math/rand"
+	"time"
 )
 
 func regpi(msg *tgbotapi.Message, update tgbotapi.Update) {
@@ -40,7 +40,6 @@ func regpi(msg *tgbotapi.Message, update tgbotapi.Update) {
 		reply = tgbotapi.NewMessage(msg.Chat.ID, "Ты уже в игре!")
 	}
 
-	db.Close()
 	reply.ReplyToMessageID = update.Message.MessageID
 	bot.Send(reply)
 }
@@ -113,24 +112,23 @@ func startQuiz(msg *tgbotapi.Message) {
 
 	calculatedWeather := cast(averageWeather, oymyakonWeather, moscowWeather, 1, rowsCounted)
 
-	if calculatedWeather > rowsCounted / 2 {
-		thePidor = random(1, calculatedWeather / 2)
+	if calculatedWeather > rowsCounted/2 {
+		thePidor = random(1, calculatedWeather/2)
 	} else {
 		thePidor = random(calculatedWeather, rowsCounted)
 	}
 
 	println(thePidor)
 
-
 }
 
-func cast(x int, inMin int, inMax int, outMin int, outMax int) (int) {
-	return (x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin
+func cast(x int, inMin int, inMax int, outMin int, outMax int) int {
+	return (x-inMin)*(outMax-outMin)/(inMax-inMin) + outMin
 }
 
 func checkCount(rows *sql.Rows) (count int) {
 	for rows.Next() {
-		err:= rows.Scan(&count)
+		err := rows.Scan(&count)
 		checkErr(err)
 	}
 	return count
@@ -144,5 +142,5 @@ func checkErr(err error) {
 
 func random(min, max int) int {
 	rand.Seed(time.Now().Unix())
-	return rand.Intn(max - min) + min
+	return rand.Intn(max-min) + min
 }
