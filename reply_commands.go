@@ -10,24 +10,29 @@ import (
 )
 
 func regpi(msg *tgbotapi.Message, update tgbotapi.Update) {
-	var result sql.NullInt64
-	row := db.QueryRow(
-		"SELECT id FROM pidors WHERE pidor=?",
-		"@"+msg.From.UserName,
+	groupId := msg.Chat.ID
+	var (
+		id sql.NullInt64
+		user sql.NullString
+		group sql.NullInt64
+		score sql.NullInt64
+		userId sql.NullInt64
 	)
 
-	err := row.Scan(&result)
+	err := db.QueryRow("SELECT * FROM pidors WHERE pidorId = ? AND wich_group = ? ",
+		msg.From.ID, groupId).Scan(&id, &user, &group, &score, &userId)
 
 	if err != nil {
 		err.Error()
 	}
 
-	var reply tgbotapi.MessageConfig
 
-	if !result.Valid {
+	var reply tgbotapi.MessageConfig
+	castedUser := string(user.String)
+	if !id.Valid {
 		_, err = db.Exec(
 			"INSERT INTO pidors (pidor, pidorId, wich_group, score) VALUES (?, ?, ?, ?)",
-			"@"+msg.From.UserName,
+			"@" + msg.From.UserName,
 			msg.From.ID,
 			msg.Chat.ID,
 			0,
@@ -36,8 +41,16 @@ func regpi(msg *tgbotapi.Message, update tgbotapi.Update) {
 			err.Error()
 		}
 		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Ты регнулся, @%s", msg.From.UserName))
+	} else if castedUser[1:] != msg.From.UserName {
+		newUsername := msg.From.UserName
+		_, err := db.Exec("UPDATE pidors SET pidor = ? where pidorId = ? and wich_group = ?", "@" + newUsername, userId, msg.Chat.ID)
+		if err != nil {
+			err.Error()
+		}
+		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Я помнил тебя под именем %s, запомню и новое имя %s",
+			castedUser, "@" + newUsername))
 	} else {
-		reply = tgbotapi.NewMessage(msg.Chat.ID, "Ты уже в игре!")
+		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprint("Эй, ты уже в игре!"))
 	}
 
 	reply.ReplyToMessageID = update.Message.MessageID
