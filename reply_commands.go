@@ -26,7 +26,6 @@ func regpi(msg *tgbotapi.Message, update tgbotapi.Update) {
 		err.Error()
 	}
 
-
 	var reply tgbotapi.MessageConfig
 	castedUser := string(user.String)
 	if !id.Valid {
@@ -58,7 +57,7 @@ func regpi(msg *tgbotapi.Message, update tgbotapi.Update) {
 }
 
 func showpid(msg *tgbotapi.Message) {
-	row, err := db.Query("SELECT pidor FROM pidors")
+	row, err := db.Query("SELECT pidor FROM pidors where wich_group = ?", msg.Chat.ID)
 	if err != nil {
 		err.Error()
 	}

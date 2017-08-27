@@ -50,6 +50,7 @@ func main() {
 
 	for update := range updates {
 		msg := update.Message
+		checkForSchedulePresence(msg)
 		if msg == nil {
 			continue
 		}
