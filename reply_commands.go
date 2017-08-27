@@ -13,11 +13,6 @@ func regpi(msg *tgbotapi.Message, update tgbotapi.Update) {
 
 	var pidor Pidor
 	gdb.Where("pidorId = ? AND wich_group = ?", msg.From.ID, groupId).First(&pidor)
-	// testing us
-	fmt.Println("--------- DEBUG --------")
-	fmt.Println("-   ", pidor, "-")
-	fmt.Println("--------- DEBUG  --------")
-	// testing us END
 	var reply tgbotapi.MessageConfig
 	castedUser := string(pidor.Pidor)
 	if pidor.ID == 0 {

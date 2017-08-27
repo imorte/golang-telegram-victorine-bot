@@ -1,10 +1,8 @@
 package main
 
 import (
-	"database/sql"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	_ "github.com/mattn/go-sqlite3"
 	"gopkg.in/telegram-bot-api.v4"
 	"log"
 )
@@ -17,7 +15,6 @@ const (
 
 var (
 	bot *tgbotapi.BotAPI
-	db  *sql.DB
 	gdb *gorm.DB
 )
 
@@ -45,16 +42,10 @@ func init() {
 	bot.Debug = true
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
-	db, err = sql.Open(DATABASE, DATABASE_NAME)
-
-	if err != nil {
-		err.Error()
-	}
 }
 
 func main() {
 
-	defer db.Close()
 	defer gdb.Close()
 
 	u := tgbotapi.NewUpdate(0)
