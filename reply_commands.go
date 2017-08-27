@@ -1,53 +1,38 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
 	"gopkg.in/telegram-bot-api.v4"
 	"math/rand"
+	"strconv"
 	"time"
 )
 
 func regpi(msg *tgbotapi.Message, update tgbotapi.Update) {
 	groupId := msg.Chat.ID
-	var (
-		id sql.NullInt64
-		user sql.NullString
-		group sql.NullInt64
-		score sql.NullInt64
-		userId sql.NullInt64
-	)
 
-	err := db.QueryRow("SELECT * FROM pidors WHERE pidorId = ? AND wich_group = ? ",
-		msg.From.ID, groupId).Scan(&id, &user, &group, &score, &userId)
-
-	if err != nil {
-		err.Error()
-	}
-
+	var pidor Pidor
+	gdb.Where("pidorId = ? AND wich_group = ?", msg.From.ID, groupId).First(&pidor)
+	// testing us
+	fmt.Println("--------- DEBUG --------")
+	fmt.Println("-   ", pidor, "-")
+	fmt.Println("--------- DEBUG  --------")
+	// testing us END
 	var reply tgbotapi.MessageConfig
-	castedUser := string(user.String)
-	if !id.Valid {
-		_, err = db.Exec(
-			"INSERT INTO pidors (pidor, pidorId, wich_group, score) VALUES (?, ?, ?, ?)",
-			"@" + msg.From.UserName,
-			msg.From.ID,
-			msg.Chat.ID,
-			0,
-		)
-		if err != nil {
-			err.Error()
-		}
-		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Ты регнулся, @%s", msg.From.UserName))
+	castedUser := string(pidor.Pidor)
+	if pidor.ID == 0 {
+		pidor.Pidor = "@" + msg.From.UserName
+		pidor.PidorId = strconv.Itoa(int(msg.From.ID))
+		pidor.WhichGroup = strconv.Itoa(int(msg.Chat.ID))
+		pidor.Score = "0"
+		gdb.Create(&pidor)
+		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprint("Ты зареган!"))
 	} else if castedUser[1:] != msg.From.UserName {
 		newUsername := msg.From.UserName
-		_, err := db.Exec("UPDATE pidors SET pidor = ? where pidorId = ? and wich_group = ?", "@" + newUsername, userId, msg.Chat.ID)
-		if err != nil {
-			err.Error()
-		}
+		pidor.Pidor = "@" + newUsername
+		gdb.Model(&pidor).Update(Pidor{Pidor: pidor.Pidor})
 		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Я помнил тебя под именем %s, запомню и новое имя %s",
-			castedUser, "@" + newUsername))
+			castedUser, "@"+newUsername))
 	} else {
 		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprint("Эй, ты уже в игре!"))
 	}
@@ -57,46 +42,28 @@ func regpi(msg *tgbotapi.Message, update tgbotapi.Update) {
 }
 
 func showpid(msg *tgbotapi.Message) {
-	row, err := db.Query("SELECT pidor FROM pidors where wich_group = ?", msg.Chat.ID)
-	if err != nil {
-		err.Error()
-	}
+	var pidors []Pidor
+	gdb.Where("wich_group = ?", msg.Chat.ID).Find(&pidors)
 
 	output := "Кандидаты в пидоры дня:\n"
-	var pidorName string
-	for row.Next() {
-		err = row.Scan(&pidorName)
-
-		if err != nil {
-			err.Error()
-		}
-		output += pidorName + "\n"
+	for _, i := range pidors {
+		output += i.Pidor + "\n"
 	}
 	output += " Хочешь себя увидеть тут?\nЖми /regpi"
 	bot.Send(tgbotapi.NewMessage(msg.Chat.ID, output))
 }
 
 func pidorStat(msg *tgbotapi.Message) {
-	row, err := db.Query("SELECT pidor, score FROM pidors ORDER BY score DESC")
-
-	if err != nil {
-		err.Error()
-	}
-
+	var pidors []Pidor
 	var reply tgbotapi.MessageConfig
-	var pidor string
-	var score int
+	gdb.Order("score desc").Find(&pidors)
 	var flag bool
 
 	output := "Статистика:\n"
-	for row.Next() {
-		err = row.Scan(&pidor, &score)
-		if err != nil {
-			err.Error()
-		}
-		if score != 0 {
+	for _, i := range pidors {
+		if i.Score != "0" {
+			output += fmt.Sprintf("%s: %s\n", i.Pidor, i.Score)
 			flag = true
-			output += fmt.Sprintf("%s: %d\n", pidor, score)
 		}
 	}
 
@@ -110,20 +77,16 @@ func pidorStat(msg *tgbotapi.Message) {
 }
 
 func startQuiz(msg *tgbotapi.Message) {
-	var thePidor int
+	var pidors []Pidor
+	gdb.Find(&pidors)
 
-	rows, err := db.Query("SELECT COUNT (*) FROM pidors")
-	if err != nil {
-		fmt.Printf("%s", err)
-	}
-
-	rowsCounted := checkCount(rows)
-
+	rowsCounted := len(pidors)
 	moscowWeather, oymyakonWeather := getWeather()
 	averageWeather := (moscowWeather + oymyakonWeather) / 2
 
 	calculatedWeather := cast(averageWeather, oymyakonWeather, moscowWeather, 1, rowsCounted)
 
+	var thePidor int
 	if calculatedWeather > rowsCounted/2 {
 		thePidor = random(1, calculatedWeather/2)
 	} else {
@@ -136,14 +99,6 @@ func startQuiz(msg *tgbotapi.Message) {
 
 func cast(x int, inMin int, inMax int, outMin int, outMax int) int {
 	return (x-inMin)*(outMax-outMin)/(inMax-inMin) + outMin
-}
-
-func checkCount(rows *sql.Rows) (count int) {
-	for rows.Next() {
-		err := rows.Scan(&count)
-		checkErr(err)
-	}
-	return count
 }
 
 func checkErr(err error) {
