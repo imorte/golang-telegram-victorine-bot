@@ -2,18 +2,20 @@ package main
 
 import (
 	"gopkg.in/telegram-bot-api.v4"
+	"strconv"
 )
 
 func checkForSchedulePresence(msg *tgbotapi.Message) {
-	var available int
-	err := db.QueryRow("SELECT id from available WHERE group_telega = ?", msg.Chat.ID).Scan(&available)
+	var ava Available
+	// here 1 result from query????
+	gdb.Where("group_telega = ?", msg.Chat.ID).First(&ava)
+	// err := db.QueryRow("SELECT id from available WHERE group_telega = ?", msg.Chat.ID).Scan(&available)
 
-	if err != nil {
-		err.Error()
-	}
-
-	if available == 0 {
-		_, err = db.Exec("INSERT INTO available (group_telega, flag, current) VALUES (?, ?, ?)",
-			msg.Chat.ID, 0, "")
+	if ava.Id == 0 {
+		gdb.Create(&Available{
+			GroupTelega: strconv.Itoa(int(msg.Chat.ID)),
+			Flag:        "0",
+			Current:     "",
+		})
 	}
 }

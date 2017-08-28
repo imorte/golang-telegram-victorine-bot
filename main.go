@@ -1,8 +1,8 @@
 package main
 
 import (
-	"database/sql"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"gopkg.in/telegram-bot-api.v4"
 	"log"
 )
@@ -15,12 +15,25 @@ const (
 
 var (
 	bot *tgbotapi.BotAPI
-	db  *sql.DB
+	gdb *gorm.DB
 )
 
 // You must create bot_token.go file, which include TOKEN variable in global package scope
 func init() {
 	var err error
+
+	gdb, err = gorm.Open(DATABASE, DATABASE_NAME)
+	if err != nil {
+		panic(err)
+	}
+	gdb.LogMode(true)
+
+	gdb.AutoMigrate(
+		&Pidor{},
+		&Group{},
+		&Available{},
+	)
+
 	bot, err = tgbotapi.NewBotAPI(TOKEN)
 
 	if err != nil {
@@ -29,16 +42,11 @@ func init() {
 	bot.Debug = true
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
-	db, err = sql.Open(DATABASE, DATABASE_NAME)
-
-	if err != nil {
-		err.Error()
-	}
 }
 
 func main() {
 
-	defer db.Close()
+	defer gdb.Close()
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = TIMEOUT
