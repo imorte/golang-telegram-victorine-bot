@@ -1,31 +1,33 @@
 package main
 
-type Pidor struct {
-	ID         int    `gorm:"primary_key;column:id"`
-	Pidor      string `gorm:"type:TEXT;column:pidor"`
-	WhichGroup string `gorm:"type:TEXT;column:wich_group"`
-	Score      string `gorm:"type:TEXT;column:score"`
-	PidorId    string `gorm:"type:TEXT;column:pidorId"`
+type Users struct {
+	Id       int    `gorm:"primary_key;column:id"`
+	Username string `gorm:"type:TEXT;column:username"`
+	GroupId  int      `gorm:"column:groupId"`
+	Score    int      `gorm:"column:score"`
+	UserId   int      `gorm:"column:userId"`
 }
 
-func (Pidor) TableName() string {
-	return "pidors"
+func (Users) TableName() string {
+	return "users"
 }
 
-type Group struct {
-	Id   int `gorm:"column:id"`
-	Name int `gorm:"column:name"`
+type Groups struct {
+	Id      int `gorm:"primary_key;column:id"`
+	GroupId int `gorm:"column:groupId"`
+	Title   string `gorm:"type:TEXT;column:title"`
+	Name    string `gorm:"type:TEXT;column:name"`
 }
 
-func (Group) TableName() string {
+func (Groups) TableName() string {
 	return "groups"
 }
 
 type Available struct {
-	Id          int    `gorm:"primary_key;column:id"`
-	GroupTelega string `gorm:"column:group_telega"`
-	Flag        string `gorm:"column:flag"`
-	Current     string `gorm:"column:current"`
+	Id      int    `gorm:"primary_key;column:id"`
+	GroupId int    `gorm:"column:groupId"`
+	Flag    bool   `gorm:"column:flag"`
+	UserId  int    `gorm:"column:userId"`
 }
 
 func (Available) TableName() string {

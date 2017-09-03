@@ -3,31 +3,28 @@ package main
 import (
 	"fmt"
 	"gopkg.in/telegram-bot-api.v4"
-	"math/rand"
-	"strconv"
 	"time"
 )
 
 func regpi(msg *tgbotapi.Message, update tgbotapi.Update) {
-	groupId := msg.Chat.ID
-
-	var pidor Pidor
-	gdb.Where("pidorId = ? AND wich_group = ?", msg.From.ID, groupId).First(&pidor)
 	var reply tgbotapi.MessageConfig
-	castedUser := string(pidor.Pidor)
-	if pidor.ID == 0 {
-		pidor.Pidor = "@" + msg.From.UserName
-		pidor.PidorId = strconv.Itoa(int(msg.From.ID))
-		pidor.WhichGroup = strconv.Itoa(int(msg.Chat.ID))
-		pidor.Score = "0"
-		gdb.Create(&pidor)
-		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprint("Ты зареган!"))
-	} else if castedUser[1:] != msg.From.UserName {
-		newUsername := msg.From.UserName
-		pidor.Pidor = "@" + newUsername
-		gdb.Model(&pidor).Update(Pidor{Pidor: pidor.Pidor})
-		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Я помнил тебя под именем %s, запомню и новое имя %s",
-			castedUser, "@"+newUsername))
+	var user Users
+	var group Groups
+	gdb.Where("groupId = ?", msg.Chat.ID).First(&group)
+	gdb.Where("userId = ? AND groupId = ?", msg.From.ID, group.Id).First(&user)
+
+
+	if len(msg.From.UserName) == 0 {
+		reply = tgbotapi.NewMessage(msg.Chat.ID, "Сначала добавь ник, а потом играй!")
+	} else if user.Id == 0 {
+		gdb.Where("groupId = ?", msg.Chat.ID).First(&group)
+
+		user.Username = "@" + msg.From.UserName
+		user.UserId = msg.From.ID
+		user.GroupId = group.Id
+		user.Score = 0
+		gdb.Create(&user)
+		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Ты регнулся, %s", user.Username))
 	} else {
 		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprint("Эй, ты уже в игре!"))
 	}
@@ -37,27 +34,36 @@ func regpi(msg *tgbotapi.Message, update tgbotapi.Update) {
 }
 
 func showpid(msg *tgbotapi.Message) {
-	var pidors []Pidor
-	gdb.Where("wich_group = ?", msg.Chat.ID).Find(&pidors)
+	var group Groups
+	var users []Users
+	gdb.Where("groupId = ?", msg.Chat.ID).First(&group)
+	gdb.Where("groupId = ?", group.Id).Find(&users)
 
-	output := "Кандидаты в пидоры дня:\n"
-	for _, i := range pidors {
-		output += i.Pidor + "\n"
+	if len(users) != 0 {
+		output := "Кандидаты в пидоры дня:\n"
+		for _, i := range users {
+			output += i.Username + "\n"
+		}
+		output += "Хочешь себя увидеть тут?\nЖми /regpi"
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, output))
+	} else {
+		output := "Пидоров нет! Будь первым! Жми /regpi"
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, output))
 	}
-	output += " Хочешь себя увидеть тут?\nЖми /regpi"
-	bot.Send(tgbotapi.NewMessage(msg.Chat.ID, output))
 }
 
 func pidorStat(msg *tgbotapi.Message) {
-	var pidors []Pidor
+	var group Groups
+	var users []Users
 	var reply tgbotapi.MessageConfig
-	gdb.Order("score desc").Find(&pidors)
 	var flag bool
+	gdb.Where("groupId = ?", msg.Chat.ID).First(&group)
+	gdb.Where("groupId = ?", group.Id).Order("score desc").Find(&users)
 
 	output := "Статистика:\n"
-	for _, i := range pidors {
-		if i.Score != "0" {
-			output += fmt.Sprintf("%s: %s\n", i.Pidor, i.Score)
+	for _, i := range users {
+		if i.Score != 0 {
+			output += fmt.Sprintf("%s: %d\n", i.Username, i.Score)
 			flag = true
 		}
 	}
@@ -65,44 +71,71 @@ func pidorStat(msg *tgbotapi.Message) {
 	if flag {
 		reply = tgbotapi.NewMessage(msg.Chat.ID, output)
 	} else {
-		reply = tgbotapi.NewMessage(msg.Chat.ID, "Пидор дня еще ни разу не был выбран! /pidor")
+		reply = tgbotapi.NewMessage(msg.Chat.ID, "Пидор дня еще ни разу не был выбран! Жми /pidor")
 	}
 
 	bot.Send(reply)
 }
 
 func startQuiz(msg *tgbotapi.Message) {
-	var pidors []Pidor
-	gdb.Find(&pidors)
+	firstPhrases := []string {
+		"Инициализирую поиск пидора дня...",
+		"Внимание, ищу пидора!",
+		"Ну-ка дай-ка...",
+		"Такс, кто тут у нас мало каши ел?",
+		"Инициализация.Поиск.",
+	}
 
-	rowsCounted := len(pidors)
-	moscowWeather, oymyakonWeather := getWeather()
-	averageWeather := (moscowWeather + oymyakonWeather) / 2
+	secondPhrases := []string {
+		"Кажется я что-то вижу!",
+		"Не может быть!",
+		"Пожалуй препроверю...",
+		"Найден!",
+		"Прям по Бабичу!",
+		"Как предсказал Великий Мейстер...",
+	}
 
-	calculatedWeather := cast(averageWeather, oymyakonWeather, moscowWeather, 1, rowsCounted)
+	var reply tgbotapi.MessageConfig
+	var theUser int
+	var users []Users
+	var group Groups
+	var winner Users
+	var winnerScore int
+	var available Available
+	gdb.Where("groupId = ?", msg.Chat.ID).First(&group)
+	gdb.Where("groupId = ?", group.Id).Find(&users)
+	gdb.Where("groupId = ?", group.Id).First(&available)
 
-	var thePidor int
-	if calculatedWeather > rowsCounted/2 {
-		thePidor = random(1, calculatedWeather/2)
+	rowsCounted := len(users)
+	if rowsCounted == 0 {
+		reply = tgbotapi.NewMessage(msg.Chat.ID, "Нет участников! Жми /regpi")
+		bot.Send(reply)
 	} else {
-		thePidor = random(calculatedWeather, rowsCounted)
+		if available.Flag {
+			println(users)
+
+
+
+
+			reply = tgbotapi.NewMessage(msg.Chat.ID, firstPhrases[random(0, len(secondPhrases) - 1)])
+			bot.Send(reply)
+			time.Sleep(time.Second * 2)
+			reply = tgbotapi.NewMessage(msg.Chat.ID, secondPhrases[random(0, len(firstPhrases) - 1)])
+			bot.Send(reply)
+			gdb.Where("id = ? and groupId = ?", theUser, group.Id).First(&winner)
+			winnerScore = winner.Score + 1
+			gdb.Model(&users).Where("id = ?", winner.Id).UpdateColumn("score", winnerScore)
+			time.Sleep(time.Second * 2)
+			reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Ага! 🎉🎉🎉 Сегодня пидор - %s", winner.Username))
+			bot.Send(reply)
+			gdb.Model(&available).Where("groupId = ?", group.Id).Update("flag", false)
+			gdb.Model(&available).Where("groupId = ?", group.Id).Update("userId", winner.Id)
+		} else {
+			var currentUser Users
+			gdb.Where("id = ?", available.UserId).First(&currentUser)
+			reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("🎉Сегодня у нас уже есть победитель - %s🎉", currentUser.Username))
+			bot.Send(reply)
+		}
 	}
-
-	println(thePidor)
-
 }
 
-func cast(x int, inMin int, inMax int, outMin int, outMax int) int {
-	return (x-inMin)*(outMax-outMin)/(inMax-inMin) + outMin
-}
-
-func checkErr(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
-func random(min, max int) int {
-	rand.Seed(time.Now().Unix())
-	return rand.Intn(max-min) + min
-}

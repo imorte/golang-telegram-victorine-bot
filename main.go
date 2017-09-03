@@ -29,8 +29,8 @@ func init() {
 	gdb.LogMode(true)
 
 	gdb.AutoMigrate(
-		&Pidor{},
-		&Group{},
+		&Users{},
+		&Groups{},
 		&Available{},
 	)
 
@@ -58,22 +58,23 @@ func main() {
 
 	for update := range updates {
 		msg := update.Message
-		checkForSchedulePresence(msg)
 		if msg == nil {
 			continue
 		}
 		if msg.IsCommand() {
 			command := msg.Command()
-
+			createGroupRecord(msg)
+			createAvailableRecord(msg)
+			checkIfUsernameChanged(msg)
 			switch command {
-			case "regpi":
-				regpi(msg, update)
-			case "showpid":
-				showpid(msg)
-			case "pidor":
-				startQuiz(msg)
-			case "pidorstat":
-				pidorStat(msg)
+				case "regpi":
+					regpi(msg, update)
+				case "showpid":
+					showpid(msg)
+				case "pidor":
+					startQuiz(msg)
+				case "pidorstat":
+					pidorStat(msg)
 			}
 		}
 	}

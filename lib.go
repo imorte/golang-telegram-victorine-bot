@@ -2,20 +2,62 @@ package main
 
 import (
 	"gopkg.in/telegram-bot-api.v4"
-	"strconv"
+	"fmt"
+	"time"
+	"math/rand"
 )
 
-func checkForSchedulePresence(msg *tgbotapi.Message) {
-	var ava Available
-	// here 1 result from query????
-	gdb.Where("group_telega = ?", msg.Chat.ID).First(&ava)
-	// err := db.QueryRow("SELECT id from available WHERE group_telega = ?", msg.Chat.ID).Scan(&available)
+func createAvailableRecord(msg *tgbotapi.Message) {
+	var available Available
+	var group Groups
+	var user Users
+	gdb.Where("groupId = ?", msg.Chat.ID).First(&group)
+	gdb.Where("groupId = ?", group.Id).First(&available)
+	gdb.Where("userId = ? AND groupId = ?", msg.From.ID, group.Id).First(&user)
 
-	if ava.Id == 0 {
+	if available.Id == 0 {
 		gdb.Create(&Available{
-			GroupTelega: strconv.Itoa(int(msg.Chat.ID)),
-			Flag:        "0",
-			Current:     "",
+			GroupId: group.Id,
+			Flag: true,
 		})
 	}
+}
+
+func createGroupRecord(msg *tgbotapi.Message) {
+	var group Groups
+	gdb.Where("groupId = ?", msg.Chat.ID).First(&group)
+
+	if group.Id == 0 {
+		gdb.Create(&Groups{
+			GroupId: int(msg.Chat.ID),
+			Title: msg.Chat.Title,
+			Name: msg.Chat.UserName,
+		})
+	}
+}
+
+func checkIfUsernameChanged(msg *tgbotapi.Message) {
+	var user Users
+	var group Groups
+	var reply tgbotapi.MessageConfig
+	gdb.Where("groupId = ?", msg.Chat.ID).First(&group)
+	gdb.Where("userId = ? AND groupId = ?", msg.From.ID, group.Id).First(&user)
+	castedUser := string(user.Username)
+	if len(castedUser) > 0 && (castedUser[1:] != msg.From.UserName) {
+		newUsername := msg.From.UserName
+		user.Username = "@" + newUsername
+		gdb.Model(&user).Update(Users{Username: user.Username})
+		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Я помнил тебя под именем %s, запомню и новое имя %s",
+			castedUser, "@"+newUsername))
+		bot.Send(reply)
+	}
+}
+
+func cast(x int, inMin int, inMax int, outMin int, outMax int) int {
+	return (x-inMin)*(outMax-outMin)/(inMax-inMin) + outMin
+}
+
+func random(min, max int) int {
+	rand.Seed(time.Now().Unix())
+	return rand.Intn(max-min) + min
 }
