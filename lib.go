@@ -1,10 +1,10 @@
 package main
 
 import (
-	"gopkg.in/telegram-bot-api.v4"
 	"fmt"
-	"time"
+	"gopkg.in/telegram-bot-api.v4"
 	"math/rand"
+	"time"
 )
 
 func createAvailableRecord(msg *tgbotapi.Message) {
@@ -18,7 +18,7 @@ func createAvailableRecord(msg *tgbotapi.Message) {
 	if available.Id == 0 {
 		gdb.Create(&Available{
 			GroupId: group.Id,
-			Flag: true,
+			Flag:    true,
 		})
 	}
 }
@@ -30,8 +30,8 @@ func createGroupRecord(msg *tgbotapi.Message) {
 	if group.Id == 0 {
 		gdb.Create(&Groups{
 			GroupId: int(msg.Chat.ID),
-			Title: msg.Chat.Title,
-			Name: msg.Chat.UserName,
+			Title:   msg.Chat.Title,
+			Name:    msg.Chat.UserName,
 		})
 	}
 }
