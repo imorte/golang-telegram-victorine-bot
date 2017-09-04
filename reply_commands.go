@@ -112,9 +112,13 @@ func startQuiz(msg *tgbotapi.Message) {
 		bot.Send(reply)
 	} else {
 		if available.Flag {
-			println(users)
+			lenOfCurrentUsers := len(users)
+			theUser = random(0, lenOfCurrentUsers - 1)
 
 
+			println()
+			println(theUser)
+			println()
 
 
 			reply = tgbotapi.NewMessage(msg.Chat.ID, firstPhrases[random(0, len(secondPhrases) - 1)])
