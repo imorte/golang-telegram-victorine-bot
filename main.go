@@ -5,6 +5,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"gopkg.in/telegram-bot-api.v4"
 	"log"
+	"github.com/jasonlvhit/gocron"
 )
 
 const (
@@ -45,7 +46,6 @@ func init() {
 }
 
 func main() {
-
 	defer gdb.Close()
 
 	u := tgbotapi.NewUpdate(0)
@@ -55,6 +55,9 @@ func main() {
 	if err != nil {
 		err.Error()
 	}
+
+	gocron.Every(1).Day().At("12:00").Do(resetAvailableFlag)
+
 
 	for update := range updates {
 		msg := update.Message

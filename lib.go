@@ -53,6 +53,11 @@ func checkIfUsernameChanged(msg *tgbotapi.Message) {
 	}
 }
 
+func resetAvailableFlag() {
+	var available Available
+	gdb.Model(&available).Update("flag", true)
+}
+
 func cast(x int, inMin int, inMax int, outMin int, outMax int) int {
 	return (x-inMin)*(outMax-outMin)/(inMax-inMin) + outMin
 }

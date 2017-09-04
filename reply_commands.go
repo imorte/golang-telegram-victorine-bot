@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gopkg.in/telegram-bot-api.v4"
 	"time"
+	//"os/user"
 )
 
 func regpi(msg *tgbotapi.Message, update tgbotapi.Update) {
@@ -96,8 +97,9 @@ func startQuiz(msg *tgbotapi.Message) {
 	}
 
 	var reply tgbotapi.MessageConfig
-	var theUser int
+	var theUser Users
 	var users []Users
+	var randomUser int
 	var group Groups
 	var winner Users
 	var winnerScore int
@@ -113,13 +115,13 @@ func startQuiz(msg *tgbotapi.Message) {
 	} else {
 		if available.Flag {
 			lenOfCurrentUsers := len(users)
-			theUser = random(0, lenOfCurrentUsers - 1)
+			if lenOfCurrentUsers == 1 {
+				randomUser = 0
+			} else {
+				randomUser = random(0, lenOfCurrentUsers - 1)
+			}
 
-
-			println()
-			println(theUser)
-			println()
-
+			gdb.Where("id = ?", users[randomUser].Id).First(&winner)
 
 			reply = tgbotapi.NewMessage(msg.Chat.ID, firstPhrases[random(0, len(secondPhrases) - 1)])
 			bot.Send(reply)
