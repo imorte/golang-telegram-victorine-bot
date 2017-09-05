@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
-	"gopkg.in/telegram-bot-api.v4"
 	"math/rand"
 	"time"
+
+	"github.com/jasonlvhit/gocron"
+	"gopkg.in/telegram-bot-api.v4"
 )
 
 func createAvailableRecord(msg *tgbotapi.Message) {
@@ -51,6 +53,11 @@ func checkIfUsernameChanged(msg *tgbotapi.Message) {
 			castedUser, "@"+newUsername))
 		bot.Send(reply)
 	}
+}
+
+func startSchedule() {
+	gocron.Every(1).Day().At("12:00").Do(resetAvailableFlag)
+	<-gocron.Start()
 }
 
 func resetAvailableFlag() {

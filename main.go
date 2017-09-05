@@ -1,11 +1,11 @@
 package main
 
 import (
+	"github.com/jasonlvhit/gocron"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"gopkg.in/telegram-bot-api.v4"
 	"log"
-	"github.com/jasonlvhit/gocron"
 )
 
 const (
@@ -35,11 +35,14 @@ func init() {
 		&Available{},
 	)
 
+	go startSchedule()
+
 	bot, err = tgbotapi.NewBotAPI(TOKEN)
 
 	if err != nil {
 		err.Error()
 	}
+
 	bot.Debug = true
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
@@ -56,9 +59,6 @@ func main() {
 		err.Error()
 	}
 
-	gocron.Every(1).Day().At("12:00").Do(resetAvailableFlag)
-
-
 	for update := range updates {
 		msg := update.Message
 		if msg == nil {
@@ -70,14 +70,14 @@ func main() {
 			createAvailableRecord(msg)
 			checkIfUsernameChanged(msg)
 			switch command {
-				case "regpi":
-					regpi(msg, update)
-				case "showpid":
-					showpid(msg)
-				case "pidor":
-					startQuiz(msg)
-				case "pidorstat":
-					pidorStat(msg)
+			case "regpi":
+				regpi(msg, update)
+			case "showpid":
+				showpid(msg)
+			case "pidor":
+				startQuiz(msg)
+			case "pidorstat":
+				pidorStat(msg)
 			}
 		}
 	}
