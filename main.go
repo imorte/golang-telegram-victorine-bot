@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/jasonlvhit/gocron"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"gopkg.in/telegram-bot-api.v4"
