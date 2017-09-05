@@ -16,7 +16,7 @@ func regpi(msg *tgbotapi.Message, update tgbotapi.Update) {
 
 
 	if len(msg.From.UserName) == 0 {
-		reply = tgbotapi.NewMessage(msg.Chat.ID, "Сначала добавь ник, а потом играй!")
+		reply = tgbotapi.NewMessage(msg.Chat.ID, "У девочки нет имени.")
 	} else if user.Id == 0 {
 		gdb.Where("groupId = ?", msg.Chat.ID).First(&group)
 
