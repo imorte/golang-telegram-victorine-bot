@@ -77,6 +77,8 @@ func main() {
 				startQuiz(msg)
 			case "pidorstat":
 				pidorStat(msg)
+			case "kek":
+				kekogen(msg)
 			}
 		}
 	}

@@ -145,3 +145,20 @@ func startQuiz(msg *tgbotapi.Message) {
 	}
 }
 
+func kekogen(msg *tgbotapi.Message) {
+	var reply tgbotapi.MessageConfig
+	vowels := []string {
+	"а", "о", "и", "е", "ё", "э", "ы", "у", "ю", "я",
+}
+	consonants := []string {
+	"в", "д", "к", "л", "м", "н", "п", "р", "с", "т", "ф", "х", "ш", "щ",
+}
+	result := "кек"
+	randomVowels := random(0, len(vowels) - 1)
+	randomConsonants := random(0, len(consonants) - 1)
+
+	result += vowels[randomVowels]
+	result += consonants[randomConsonants]
+	reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf(result))
+	bot.Send(reply)
+}
