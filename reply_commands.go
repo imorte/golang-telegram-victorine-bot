@@ -154,11 +154,15 @@ func kekogen(msg *tgbotapi.Message) {
 	"в", "д", "к", "л", "м", "н", "п", "р", "с", "т", "ф", "х", "ш", "щ",
 }
 	result := "кек"
-	randomVowels := random(0, len(vowels) - 1)
-	randomConsonants := random(0, len(consonants) - 1)
 
-	result += vowels[randomVowels]
-	result += consonants[randomConsonants]
+	for x:= 0; x < 5; x++ {
+		if x % 2 == 0 {
+			result += vowels[random(0, len(vowels) - 1)]
+		} else {
+			result += consonants[random(0, len(consonants) - 1)]
+		}
+	}
+
 	reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf(result))
 	bot.Send(reply)
 }
