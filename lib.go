@@ -56,11 +56,11 @@ func checkIfUsernameChanged(msg *tgbotapi.Message) {
 }
 
 func startSchedule() {
-	gocron.Every(1).Day().At("12:00").Do(resetAvailableFlag)
+	gocron.Every(1).Day().At("12:00").Do(resetFlags)
 	<-gocron.Start()
 }
 
-func resetAvailableFlag() {
+func resetFlags() {
 	var user Users
 	var available Available
 	gdb.Model(&available).Update("flag", true)
