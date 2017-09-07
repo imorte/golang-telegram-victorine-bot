@@ -63,6 +63,7 @@ func main() {
 		if msg == nil {
 			continue
 		}
+
 		if msg.IsCommand() {
 			command := msg.Command()
 			createGroupRecord(msg)

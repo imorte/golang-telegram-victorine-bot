@@ -61,8 +61,10 @@ func startSchedule() {
 }
 
 func resetAvailableFlag() {
+	var user Users
 	var available Available
 	gdb.Model(&available).Update("flag", true)
+	gdb.Model(&user).Update(Users{Quota: 6})
 }
 
 func cast(x int, inMin int, inMax int, outMin int, outMax int) int {

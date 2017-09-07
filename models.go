@@ -6,6 +6,7 @@ type Users struct {
 	GroupId  int      `gorm:"column:groupId"`
 	Score    int      `gorm:"column:score"`
 	UserId   int      `gorm:"column:userId"`
+	Quota    int `gorm:"column:quota"`
 }
 
 func (Users) TableName() string {

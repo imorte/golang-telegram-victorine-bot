@@ -147,22 +147,31 @@ func startQuiz(msg *tgbotapi.Message) {
 
 func kekogen(msg *tgbotapi.Message) {
 	var reply tgbotapi.MessageConfig
-	vowels := []string {
-	"а", "о", "и", "е", "ё", "э", "ы", "у", "ю", "я",
-}
-	consonants := []string {
-	"в", "д", "к", "л", "м", "н", "п", "р", "с", "т", "ф", "х", "ш", "щ",
-}
-	result := "кек"
-
-	for x:= 0; x < 5; x++ {
-		if x % 2 == 0 {
-			result += vowels[random(0, len(vowels) - 1)]
-		} else {
-			result += consonants[random(0, len(consonants) - 1)]
+	var user Users
+	gdb.Where("userId = ?", msg.From.ID).First(&user)
+	currentQuota := user.Quota
+	if currentQuota > 1 {
+		vowels := []string {
+			"а", "о", "и", "е", "ё", "э", "ы", "у", "ю", "я",
 		}
+		consonants := []string {
+			"в", "д", "к", "л", "м", "н", "п", "р", "с", "т", "ф", "х", "ш", "щ",
+		}
+		result := "кек"
+
+		for x:= 0; x < 5; x++ {
+			if x % 2 == 0 {
+				result += vowels[random(0, len(vowels) - 1)]
+			} else {
+				result += consonants[random(0, len(consonants) - 1)]
+			}
+		}
+
+		gdb.Model(&user).Update(Users{Quota: currentQuota - 1})
+		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf(result))
+	} else {
+		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Твои кеки на сегодня кончились!"))
 	}
 
-	reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf(result))
 	bot.Send(reply)
 }
