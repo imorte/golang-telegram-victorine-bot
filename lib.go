@@ -60,14 +60,11 @@ func startSchedule() {
 	<-gocron.Start()
 }
 
-func resetFlags(msg *tgbotapi.Message) {
+func resetFlags() {
 	var user Users
 	var available Available
-	var reply tgbotapi.MessageConfig
 	gdb.Model(&available).Update("flag", true)
 	gdb.Model(&user).Update(Users{Quota: 6})
-	reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Новый кекодень настал!"))
-	bot.Send(reply)
 }
 
 func cast(x int, inMin int, inMax int, outMin int, outMax int) int {
