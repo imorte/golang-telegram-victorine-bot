@@ -75,3 +75,21 @@ func random(min, max int) int {
 	rand.Seed(time.Now().UTC().UnixNano())
 	return rand.Intn(max-min) + min
 }
+
+//func digitToWord(digit string) string {
+//	var result string
+//	_ := map[int]string {
+//		1: "один",
+//		2: "два",
+//		3: "три",
+//		4: "четыре",
+//		5: "пять",
+//		6: "шесть",
+//		7: "семь",
+//		8: "восемь",
+//		9: "девять",
+//	}
+//
+//
+//	return result
+//}

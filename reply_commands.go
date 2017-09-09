@@ -25,6 +25,7 @@ func regpi(msg *tgbotapi.Message, update tgbotapi.Update) {
 		user.GroupId = group.Id
 		user.Score = 0
 		gdb.Create(&user)
+		gdb.Model(&user).Update(Users{Quota: 6})
 		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Ты регнулся, %s", user.Username))
 	} else {
 		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprint("Эй, ты уже в игре!"))
