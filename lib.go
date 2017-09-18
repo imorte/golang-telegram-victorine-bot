@@ -73,7 +73,7 @@ func cast(x int, inMin int, inMax int, outMin int, outMax int) int {
 
 func random(min, max int) int {
 	rand.Seed(time.Now().UTC().UnixNano())
-	return rand.Intn(max-min) + min
+	return rand.Intn((max + 1)-min) + min
 }
 
 //func digitToWord(digit string) string {
