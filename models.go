@@ -3,6 +3,7 @@ package main
 type Users struct {
 	Id       int    `gorm:"primary_key;column:id"`
 	Username string `gorm:"type:TEXT;column:username"`
+	Usernick string `gorm:"type:TEXT;column:usernick"`
 	GroupId  int      `gorm:"column:groupId"`
 	Score    int      `gorm:"column:score"`
 	UserId   int      `gorm:"column:userId"`

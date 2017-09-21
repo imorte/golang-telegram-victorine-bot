@@ -76,6 +76,15 @@ func random(min, max int) int {
 	return rand.Intn((max + 1)-min) + min
 }
 
+func createUserNick(msg *tgbotapi.Message) {
+	var users Users
+	gdb.Where("userId = ?", msg.From.ID).First(&users)
+
+	if len(users.Usernick) == 0 {
+		gdb.Model(&users).Update(Users{Usernick: fmt.Sprintf("%s %s", msg.From.FirstName, msg.From.LastName)})
+	}
+}
+
 //func digitToWord(digit string) string {
 //	var result string
 //	_ := map[int]string {
