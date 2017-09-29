@@ -46,7 +46,7 @@ func showpid(msg *tgbotapi.Message) {
 		output := "Кандидаты в пидоры дня:\n"
 		for _, i := range users {
 			if len(i.Usernick) > 0 {
-				output += fmt.Sprintf("%s (%s) \n", i.Usernick, i.Username[1:])
+				output += fmt.Sprintf("%s\n", i.Username[1:])
 			} else {
 				output += fmt.Sprintf("%s \n", i.Username[1:])
 
@@ -71,7 +71,7 @@ func pidorStat(msg *tgbotapi.Message) {
 	output := "Статистика:\n"
 	for _, i := range users {
 		if i.Score != 0 {
-			output += fmt.Sprintf("%s %s: %d\n", i.Usernick, i.Username[1:], i.Score)
+			output += fmt.Sprintf("%s: %d\n", i.Username[1:], i.Score)
 			flag = true
 		}
 	}

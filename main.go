@@ -69,7 +69,7 @@ func main() {
 			createGroupRecord(msg)
 			createAvailableRecord(msg)
 			checkIfUsernameChanged(msg)
-			createUserNick(msg)
+			//createUserNick(msg)
 			switch command {
 			case "regpi":
 				regpi(msg, update)
