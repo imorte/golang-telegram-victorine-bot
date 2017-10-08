@@ -183,7 +183,7 @@ func kekogen(msg *tgbotapi.Message) {
 			reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Твои кеки на сегодня кончились!"))
 		}
 	} else {
-		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Жми /regpi чтобы зарегестрироваться и получить свои кеки!"))
+		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Жми /regpi чтобы зарегистрироваться и получить свои кеки!"))
 	}
 
 	bot.Send(reply)
