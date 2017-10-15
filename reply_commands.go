@@ -9,26 +9,27 @@ import (
 
 func regpi(msg *tgbotapi.Message, update tgbotapi.Update) {
 	var reply tgbotapi.MessageConfig
-	var user Users
-	var group Groups
-	gdb.Where("groupId = ?", msg.Chat.ID).First(&group)
-	gdb.Where("userId = ? AND groupId = ?", msg.From.ID, group.Id).First(&user)
+	var user User
+
+	userId := msg.From.ID
+	groupId := msg.Chat.ID
+
+	gdb.Where("userId = ? AND groupId = ?", userId, groupId).First(&user)
 
 
 	if len(msg.From.UserName) == 0 {
-		reply = tgbotapi.NewMessage(msg.Chat.ID, "У девочки нет имени.")
+		reply = tgbotapi.NewMessage(msg.Chat.ID, "A girl has no name.")
 	} else if user.Id == 0 {
-		gdb.Where("groupId = ?", msg.Chat.ID).First(&group)
-
 		user.Username = "@" + msg.From.UserName
 		user.UserId = msg.From.ID
-		user.GroupId = group.Id
+		user.GroupID = int(groupId)
 		user.Score = 0
 		user.Usernick = fmt.Sprintf("%s %s", msg.From.FirstName, msg.From.LastName)
 		user.Quota = 6
 		gdb.Create(&user)
-		gdb.Model(&user).Update(Users{Quota: 6})
-		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Ты регнулся, %s", user.Username))
+		gdb.Model(&user).Update(User{Quota: 6})
+		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Ты регнулся, [%s](tg://user?id=%d)\n", user.Usernick, user.UserId))
+		reply.ParseMode = tgbotapi.ModeMarkdown
 	} else {
 		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprint("Эй, ты уже в игре!"))
 	}
@@ -38,23 +39,25 @@ func regpi(msg *tgbotapi.Message, update tgbotapi.Update) {
 }
 
 func showpid(msg *tgbotapi.Message) {
-	var group Groups
-	var users []Users
-	gdb.Where("groupId = ?", msg.Chat.ID).First(&group)
-	gdb.Where("groupId = ?", group.Id).Find(&users)
+	var users []User
+
+	groupId := msg.Chat.ID
+
+	gdb.Where("groupId = ?", groupId).Find(&users)
 
 	if len(users) != 0 {
 		output := "Кандидаты в пидоры дня:\n"
 		for _, i := range users {
 			if len(i.Usernick) > 0 {
-				output += fmt.Sprintf("%s\n", i.Username[1:])
+				output += fmt.Sprintf("[%s](tg://user?id=%d)\n", i.Usernick, i.UserId)
 			} else {
-				output += fmt.Sprintf("%s \n", i.Username[1:])
-
+				output += fmt.Sprintf("[%s](tg://user?id=%d)\n", i.Username[1:], i.UserId)
 			}
 		}
 		output += "Хочешь себя увидеть тут?\nЖми /regpi"
-		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, output))
+		reply := tgbotapi.NewMessage(msg.Chat.ID, output)
+		reply.ParseMode = tgbotapi.ModeMarkdown
+		bot.Send(reply)
 	} else {
 		output := "Пидоров нет! Будь первым! Жми /regpi"
 		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, output))
@@ -62,23 +65,25 @@ func showpid(msg *tgbotapi.Message) {
 }
 
 func pidorStat(msg *tgbotapi.Message) {
-	var group Groups
-	var users []Users
+	var users []User
 	var reply tgbotapi.MessageConfig
 	var flag bool
-	gdb.Where("groupId = ?", msg.Chat.ID).First(&group)
-	gdb.Where("groupId = ?", group.Id).Order("score desc").Find(&users)
+
+	groupId := msg.Chat.ID
+
+	gdb.Where("groupId = ?", groupId).Order("score desc").Find(&users)
 
 	output := "Статистика:\n"
 	for _, i := range users {
 		if i.Score != 0 {
-			output += fmt.Sprintf("%s: %d\n", i.Username[1:], i.Score)
+			output += fmt.Sprintf("[%s](tg://user?id=%d)\n", i.Usernick, i.UserId)
 			flag = true
 		}
 	}
 
 	if flag {
 		reply = tgbotapi.NewMessage(msg.Chat.ID, output)
+		reply.ParseMode = tgbotapi.ModeMarkdown
 	} else {
 		reply = tgbotapi.NewMessage(msg.Chat.ID, "Пидор дня еще ни разу не был выбран! Жми /pidor")
 	}
@@ -105,16 +110,18 @@ func startQuiz(msg *tgbotapi.Message) {
 	}
 
 	var reply tgbotapi.MessageConfig
-	var theUser Users
-	var users []Users
+	var theUser User
+	var users []User
 	var randomUser int
-	var group Groups
-	var winner Users
+	var currentUserName string
+	var winner User
 	var winnerScore int
 	var available Available
-	gdb.Where("groupId = ?", msg.Chat.ID).First(&group)
-	gdb.Where("groupId = ?", group.Id).Find(&users)
-	gdb.Where("groupId = ?", group.Id).First(&available)
+
+	groupId := msg.Chat.ID
+
+	gdb.Where("groupId = ?", groupId).Find(&users)
+	gdb.Where("groupId = ?", groupId).First(&available)
 
 	rowsCounted := len(users)
 	if rowsCounted == 0 {
@@ -131,23 +138,35 @@ func startQuiz(msg *tgbotapi.Message) {
 
 			gdb.Where("id = ?", users[randomUser].Id).First(&winner)
 
-			reply = tgbotapi.NewMessage(msg.Chat.ID, firstPhrases[random(0, len(secondPhrases) - 1)])
+			reply = tgbotapi.NewMessage(msg.Chat.ID, firstPhrases[random(0, len(firstPhrases) - 1)])
 			bot.Send(reply)
 			time.Sleep(time.Second * 2)
-			reply = tgbotapi.NewMessage(msg.Chat.ID, secondPhrases[random(0, len(firstPhrases) - 1)])
+			reply = tgbotapi.NewMessage(msg.Chat.ID, secondPhrases[random(0, len(secondPhrases) - 1)])
 			bot.Send(reply)
-			gdb.Where("id = ? and groupId = ?", theUser, group.Id).First(&winner)
+			gdb.Where("id = ? and groupId = ?", theUser, groupId).First(&winner)
 			winnerScore = winner.Score + 1
 			gdb.Model(&users).Where("id = ?", winner.Id).UpdateColumn("score", winnerScore)
 			time.Sleep(time.Second * 2)
-			reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Ага! 🎉🎉🎉 Сегодня пидор - %s", winner.Username))
+			if len(winner.Usernick) > 0 {
+				currentUserName = winner.Usernick
+			} else {
+				currentUserName = winner.Username
+			}
+			reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Ага! 🎉🎉🎉 Сегодня пидор - [%s](tg://user?id=%d)", currentUserName, winner.UserId))
+			reply.ParseMode = tgbotapi.ModeMarkdown
 			bot.Send(reply)
-			gdb.Model(&available).Where("groupId = ?", group.Id).Update("flag", false)
-			gdb.Model(&available).Where("groupId = ?", group.Id).Update("userId", winner.Id)
+			gdb.Model(&available).Where("groupId = ?", groupId).Update("flag", false)
+			gdb.Model(&available).Where("groupId = ?", groupId).Update("userId", winner.Id)
 		} else {
-			var currentUser Users
+			var currentUser User
 			gdb.Where("id = ?", available.UserId).First(&currentUser)
-			reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("🎉Сегодня у нас уже есть победитель - %s🎉", currentUser.Username))
+			if len(currentUser.Usernick) > 0 {
+				currentUserName = currentUser.Usernick
+			} else {
+				currentUserName = currentUser.Username[1:]
+			}
+			reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("🎉Сегодня у нас уже есть победитель - [%s](tg://user?id=%d)🎉", currentUserName, currentUser.UserId))
+			reply.ParseMode = tgbotapi.ModeMarkdown
 			bot.Send(reply)
 		}
 	}
@@ -155,17 +174,21 @@ func startQuiz(msg *tgbotapi.Message) {
 
 func kekogen(msg *tgbotapi.Message) {
 	var reply tgbotapi.MessageConfig
-	var user Users
-	gdb.Where("userId = ?", msg.From.ID).First(&user)
+	var user User
+
+	userId := msg.From.ID
+	groupId := msg.Chat.ID
+
+	gdb.Where("userId = ? and groupId = ?", userId, groupId).First(&user)
 	currentQuota := user.Quota
 
 	if user.Id > 0 {
 		if currentQuota > 1 {
 			vowels := []string {
-				"а", "о", "и", "е", "ё", "э", "ы", "у", "ю", "я",
+				"а", "о", "и", "е", "у",  "я",
 			}
 			consonants := []string {
-				"в", "д", "к", "л", "м", "н", "п", "р", "с", "т", "ф", "х", "ш", "щ",
+				"в", "д", "к", "л", "м", "н", "п", "р", "с", "т", "ф", "х", "ш",
 			}
 			result := "кек"
 
@@ -177,7 +200,7 @@ func kekogen(msg *tgbotapi.Message) {
 				}
 			}
 
-			gdb.Model(&user).Update(Users{Quota: currentQuota - 1})
+			gdb.Model(&user).Update(User{Quota: currentQuota - 1})
 			reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf(result))
 		} else {
 			reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Твои кеки на сегодня кончились!"))

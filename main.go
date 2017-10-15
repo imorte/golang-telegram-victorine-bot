@@ -29,8 +29,8 @@ func init() {
 	gdb.LogMode(true)
 
 	gdb.AutoMigrate(
-		&Users{},
-		&Groups{},
+		&User{},
+		&Group{},
 		&Available{},
 	)
 
@@ -69,7 +69,7 @@ func main() {
 			createGroupRecord(msg)
 			createAvailableRecord(msg)
 			checkIfUsernameChanged(msg)
-			//createUserNick(msg)
+			checkIfPresenceUserNick(msg)
 			switch command {
 			case "regpi":
 				regpi(msg, update)

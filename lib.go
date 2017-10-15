@@ -11,26 +11,28 @@ import (
 
 func createAvailableRecord(msg *tgbotapi.Message) {
 	var available Available
-	var group Groups
-	var user Users
-	gdb.Where("groupId = ?", msg.Chat.ID).First(&group)
-	gdb.Where("groupId = ?", group.Id).First(&available)
-	gdb.Where("userId = ? AND groupId = ?", msg.From.ID, group.Id).First(&user)
+	var user User
+
+	userId := msg.From.ID
+	groupId := msg.Chat.ID
+
+	gdb.Where("groupId = ?", groupId).First(&available)
+	gdb.Where("userId = ? AND groupId = ?", userId, groupId).First(&user)
 
 	if available.Id == 0 {
 		gdb.Create(&Available{
-			GroupId: group.Id,
+			GroupId: int(groupId),
 			Flag:    true,
 		})
 	}
 }
 
 func createGroupRecord(msg *tgbotapi.Message) {
-	var group Groups
+	var group Group
 	gdb.Where("groupId = ?", msg.Chat.ID).First(&group)
 
 	if group.Id == 0 {
-		gdb.Create(&Groups{
+		gdb.Create(&Group{
 			GroupId: int(msg.Chat.ID),
 			Title:   msg.Chat.Title,
 			Name:    msg.Chat.UserName,
@@ -39,8 +41,8 @@ func createGroupRecord(msg *tgbotapi.Message) {
 }
 
 func checkIfUsernameChanged(msg *tgbotapi.Message) {
-	var user Users
-	var group Groups
+	var user User
+	var group Group
 	var reply tgbotapi.MessageConfig
 	gdb.Where("groupId = ?", msg.Chat.ID).First(&group)
 	gdb.Where("userId = ? AND groupId = ?", msg.From.ID, group.Id).First(&user)
@@ -48,7 +50,7 @@ func checkIfUsernameChanged(msg *tgbotapi.Message) {
 	if len(castedUser) > 0 && (castedUser[1:] != msg.From.UserName) {
 		newUsername := msg.From.UserName
 		user.Username = "@" + newUsername
-		gdb.Model(&user).Update(Users{Username: user.Username})
+		gdb.Model(&user).Update(User{Username: user.Username})
 		reply = tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Я помнил тебя под именем %s, запомню и новое имя %s",
 			castedUser, "@"+newUsername))
 		bot.Send(reply)
@@ -61,14 +63,10 @@ func startSchedule() {
 }
 
 func resetFlags() {
-	var user Users
+	var user User
 	var available Available
 	gdb.Model(&available).Update("flag", true)
-	gdb.Model(&user).Update(Users{Quota: 6})
-}
-
-func cast(x int, inMin int, inMax int, outMin int, outMax int) int {
-	return (x-inMin)*(outMax-outMin)/(inMax-inMin) + outMin
+	gdb.Model(&user).Update(User{Quota: 6})
 }
 
 func random(min, max int) int {
@@ -76,30 +74,16 @@ func random(min, max int) int {
 	return rand.Intn((max + 1)-min) + min
 }
 
-//func createUserNick(msg *tgbotapi.Message) {
-//	var users Users
-//	gdb.Where("userId = ?", msg.From.ID).First(&users)
-//	nick := fmt.Sprintf("%s %s", msg.From.FirstName, msg.From.LastName)
-//
-//	if len(users.Usernick) == 0 || nick != users.Usernick {
-//		gdb.Model(&users).Update(Users{Usernick: nick})
-//	}
-//}
+func checkIfPresenceUserNick(msg *tgbotapi.Message) {
+	var user User
 
-//func digitToWord(digit string) string {
-//	var result string
-//	_ := map[int]string {
-//		1: "один",
-//		2: "два",
-//		3: "три",
-//		4: "четыре",
-//		5: "пять",
-//		6: "шесть",
-//		7: "семь",
-//		8: "восемь",
-//		9: "девять",
-//	}
-//
-//
-//	return result
-//}
+	userId := msg.From.ID
+	groupId := msg.Chat.ID
+
+	gdb.Where("userId = ? and groupId = ?", userId, groupId).First(&user)
+
+	if user.Id > 0 && user.Usernick != fmt.Sprintf("%s %s", msg.From.FirstName, msg.From.LastName) {
+		gdb.Model(&user).Where("userId = ?", userId).UpdateColumn("usernick",
+			fmt.Sprintf("%s %s", msg.From.FirstName, msg.From.LastName))
+	}
+}
