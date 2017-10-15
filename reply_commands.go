@@ -65,19 +65,44 @@ func showpid(msg *tgbotapi.Message) {
 }
 
 func pidorStat(msg *tgbotapi.Message) {
+	titles := map[int]string{
+		1 : "Пидоратор",
+		2 : "Пидороль",
+		3 : "Герцопидор",
+		4 : "Пиркиз",
+		5 : "Пидорон",
+	}
+
 	var users []User
 	var reply tgbotapi.MessageConfig
 	var flag bool
+	var currentUserName string
 
 	groupId := msg.Chat.ID
+	counter := 0
+	var titlesCounter int
 
 	gdb.Where("groupId = ?", groupId).Order("score desc").Find(&users)
 
-	output := "Статистика:\n"
+	output := "Статистика (первые 5):\n"
+	titlesCounter = 1
 	for _, i := range users {
 		if i.Score != 0 {
-			output += fmt.Sprintf("[%s](tg://user?id=%d)\n", i.Usernick, i.UserId)
+			if len(i.Usernick) > 0 {
+				currentUserName = i.Usernick
+			} else {
+				currentUserName = i.Username[1:]
+			}
+
+			output += fmt.Sprintf("[%s](tg://user?id=%d) - %d (%s)\n", currentUserName, i.UserId, i.Score, titles[titlesCounter])
+			titlesCounter++
 			flag = true
+
+			if counter == 5 {
+				break
+			} else {
+				counter++
+			}
 		}
 	}
 
