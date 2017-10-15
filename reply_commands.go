@@ -49,14 +49,13 @@ func showpid(msg *tgbotapi.Message) {
 		output := "Кандидаты в пидоры дня:\n"
 		for _, i := range users {
 			if len(i.Usernick) > 0 {
-				output += fmt.Sprintf("[%s](tg://user?id=%d)\n", i.Usernick, i.UserId)
+				output += fmt.Sprintf("%s\n", i.Usernick)
 			} else {
-				output += fmt.Sprintf("[%s](tg://user?id=%d)\n", i.Username[1:], i.UserId)
+				output += fmt.Sprintf("%s\n", i.Username[1:])
 			}
 		}
 		output += "Хочешь себя увидеть тут?\nЖми /regpi"
 		reply := tgbotapi.NewMessage(msg.Chat.ID, output)
-		reply.ParseMode = tgbotapi.ModeMarkdown
 		bot.Send(reply)
 	} else {
 		output := "Пидоров нет! Будь первым! Жми /regpi"
