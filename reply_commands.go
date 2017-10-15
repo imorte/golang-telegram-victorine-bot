@@ -98,7 +98,7 @@ func pidorStat(msg *tgbotapi.Message) {
 			titlesCounter++
 			flag = true
 
-			if counter > 5 {
+			if counter < 5 {
 				break
 			} else {
 				counter++
