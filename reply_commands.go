@@ -239,13 +239,20 @@ func kekogen(msg *tgbotapi.Message) {
 
 func unreg(msg *tgbotapi.Message, update tgbotapi.Update) {
 	var user User
+	var realNickname string
 
 	userToDelete := strings.Split(msg.Text, " ")
 	if len(userToDelete[1]) > 0 {
 		gdb.Where("username = ? and groupId = ?", userToDelete[1], msg.Chat.ID).First(&user)
 		gdb.Delete(&user)
 
-		reply := tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("[%s](tg://user?id=%d) исключен", user.Usernick, user.UserId))
+		if len(user.Usernick) > 0 {
+			realNickname = user.Usernick
+		} else {
+			realNickname = user.Username
+		}
+
+		reply := tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("[%s](tg://user?id=%d) исключен", realNickname, user.UserId))
 		reply.ParseMode = tgbotapi.ModeMarkdown
 		reply.ReplyToMessageID = update.Message.MessageID
 		bot.Send(reply)
