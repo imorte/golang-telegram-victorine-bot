@@ -8,6 +8,7 @@ type User struct {
 	Score    int    `gorm:"column:score"`
 	UserId   int    `gorm:"column:userId"`
 	Quota    int    `gorm:"column:quota"`
+	IsAdmin  bool   `gorm:"column:isAdmin"`
 }
 
 func (User) TableName() string {

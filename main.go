@@ -79,6 +79,10 @@ func main() {
 				startQuiz(msg)
 			case "pidorstat":
 				pidorStat(msg)
+			case "unreg":
+				if checkAdminAccess(msg, update) {
+					unreg(msg, update)
+				}
 			case "kek":
 				kekogen(msg)
 			}

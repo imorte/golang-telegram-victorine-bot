@@ -87,3 +87,19 @@ func checkIfPresenceUserNick(msg *tgbotapi.Message) {
 			fmt.Sprintf("%s %s", msg.From.FirstName, msg.From.LastName))
 	}
 }
+
+func checkAdminAccess(msg *tgbotapi.Message, update tgbotapi.Update) (bool){
+	var user User
+
+	gdb.Where("userId = ? and groupId = ?", msg.From.ID, msg.Chat.ID).Find(&user)
+
+	if user.IsAdmin == true {
+		return true
+	} else {
+		reply := tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Позарился на святое!"))
+		reply.ReplyToMessageID = update.Message.MessageID
+		bot.Send(reply)
+
+		return false
+	}
+}

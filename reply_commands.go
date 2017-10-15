@@ -5,6 +5,7 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 	"time"
 	//"os/user"
+	"strings"
 )
 
 func regpi(msg *tgbotapi.Message, update tgbotapi.Update) {
@@ -234,4 +235,19 @@ func kekogen(msg *tgbotapi.Message) {
 	}
 
 	bot.Send(reply)
+}
+
+func unreg(msg *tgbotapi.Message, update tgbotapi.Update) {
+	var user User
+
+	userToDelete := strings.Split(msg.Text, " ")
+	if len(userToDelete[1]) > 0 {
+		gdb.Where("username = ? and groupId = ?", userToDelete[1], msg.Chat.ID).First(&user)
+		gdb.Delete(&user)
+
+		reply := tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("[%s](tg://user?id=%d) исключен", user.Usernick, user.UserId))
+		reply.ParseMode = tgbotapi.ModeMarkdown
+		reply.ReplyToMessageID = update.Message.MessageID
+		bot.Send(reply)
+	}
 }
