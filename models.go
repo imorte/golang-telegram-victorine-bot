@@ -9,6 +9,7 @@ type User struct {
 	UserId   int    `gorm:"column:userId"`
 	Quota    int    `gorm:"column:quota"`
 	IsAdmin  bool   `gorm:"column:isAdmin"`
+	DisableNotify  bool   `gorm:"column:disable_notify"`
 }
 
 func (User) TableName() string {

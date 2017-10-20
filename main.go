@@ -85,6 +85,8 @@ func main() {
 				}
 			case "kek":
 				kekogen(msg)
+			case "silent":
+				disableNotify(msg, update)
 			}
 		}
 	}

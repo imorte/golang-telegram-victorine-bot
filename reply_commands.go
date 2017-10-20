@@ -94,7 +94,12 @@ func pidorStat(msg *tgbotapi.Message) {
 				currentUserName = i.Username[1:]
 			}
 
-			output += fmt.Sprintf("[%s](tg://user?id=%d) - %d (%s)\n", currentUserName, i.UserId, i.Score, titles[titlesCounter])
+			if i.DisableNotify {
+				output += fmt.Sprintf("%s - %d (%s)\n", currentUserName, i.Score, titles[titlesCounter])
+			} else {
+				output += fmt.Sprintf("[%s](tg://user?id=%d) - %d (%s)\n", currentUserName, i.UserId, i.Score, titles[titlesCounter])
+			}
+
 			titlesCounter++
 			flag = true
 
@@ -266,4 +271,23 @@ func unreg(msg *tgbotapi.Message, update tgbotapi.Update) {
 		reply.ReplyToMessageID = update.Message.MessageID
 		bot.Send(reply)
 	}
+}
+
+func disableNotify(msg *tgbotapi.Message, update tgbotapi.Update) {
+	var user User
+	var message string
+
+	gdb.Where("userId =? and groupId = ?", msg.From.ID, msg.Chat.ID).First(&user)
+
+	if !user.DisableNotify {
+		gdb.Model(&user).UpdateColumn("disable_notify", true)
+		message = "Упоминания отключены"
+	} else {
+		gdb.Model(&user).UpdateColumn("disable_notify", false)
+		message = "Упоминания включены"
+	}
+
+	reply := tgbotapi.NewMessage(msg.Chat.ID, message)
+	reply.ReplyToMessageID = update.Message.MessageID
+	bot.Send(reply)
 }
