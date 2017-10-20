@@ -244,19 +244,21 @@ func unreg(msg *tgbotapi.Message, update tgbotapi.Update) {
 
 	userToDelete := strings.Split(msg.Text, " ")
 	if len(userToDelete[1]) > 0 {
-		gdb.Where("username = ? and groupId = ?", userToDelete[1], msg.Chat.ID).First(&user)
-		if user.Id > 0 {
-			gdb.Delete(&user)
-			message = fmt.Sprintf("[%s](tg://user?id=%d) исключен", realNickname, user.UserId)
-		} else {
-			message = "Пользователя не существует"
-		}
 
 		if len(user.Usernick) > 0 {
 			realNickname = user.Usernick
 		} else {
 			realNickname = user.Username
 		}
+
+		gdb.Where("username = ? and groupId = ?", userToDelete[1], msg.Chat.ID).First(&user)
+		if user.Id > 0 {
+			gdb.Delete(&user)
+			message = fmt.Sprintf("[%s](tg://user?id=%d) исключен", realNickname, user.UserId)
+		} else {
+			message = "Пользователь не существует"
+		}
+
 
 		reply := tgbotapi.NewMessage(msg.Chat.ID, message)
 		reply.ParseMode = tgbotapi.ModeMarkdown
