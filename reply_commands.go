@@ -86,6 +86,7 @@ func pidorStat(msg *tgbotapi.Message) {
 
 	output := "Статистика (первые 5):\n"
 	titlesCounter = 1
+	mdCounter := 0
 	for _, i := range users {
 		if i.Score != 0 {
 			if len(i.Usernick) > 0 {
@@ -96,6 +97,7 @@ func pidorStat(msg *tgbotapi.Message) {
 
 			if i.DisableNotify {
 				output += fmt.Sprintf("%s - %d (%s)\n", currentUserName, i.Score, titles[titlesCounter])
+				mdCounter++
 			} else {
 				output += fmt.Sprintf("[%s](tg://user?id=%d) - %d (%s)\n", currentUserName, i.UserId, i.Score, titles[titlesCounter])
 			}
@@ -113,7 +115,9 @@ func pidorStat(msg *tgbotapi.Message) {
 
 	if flag {
 		reply = tgbotapi.NewMessage(msg.Chat.ID, output)
-		reply.ParseMode = tgbotapi.ModeMarkdown
+		if mdCounter < 5 {
+			reply.ParseMode = tgbotapi.ModeMarkdown
+		}
 	} else {
 		reply = tgbotapi.NewMessage(msg.Chat.ID, "Пидор дня еще ни разу не был выбран! Жми /pidor")
 	}
