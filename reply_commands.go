@@ -247,6 +247,7 @@ func kekogen(msg *tgbotapi.Message) {
 }
 
 func unreg(msg *tgbotapi.Message, update tgbotapi.Update) {
+	var available Available
 	var user User
 	var realNickname string
 	var message string
@@ -263,8 +264,10 @@ func unreg(msg *tgbotapi.Message, update tgbotapi.Update) {
 		}
 
 		if user.Id > 0 {
+			message = fmt.Sprintf("[%s](tg://user?id=%d) предательски покинул группу, и исключается из почетного списка участников.", realNickname, user.UserId)
 			gdb.Delete(&user)
-			message = fmt.Sprintf("[%s](tg://user?id=%d) исключен", realNickname, user.UserId)
+			gdb.Model(&available).UpdateColumn("flag", true)
+
 		} else {
 			message = "Пользователь не существует"
 		}
