@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
@@ -61,32 +62,6 @@ func main() {
 	}
 
 	for update := range updates {
-
-		// ID чата/диалога.
-		// Может быть идентификатором как чата с пользователем
-		// (тогда он равен UserID) так и публичного чата/канала
-		ChatID := update.Message.Chat.ID
-		// UserID := update.Message.UserID
-		// Текст сообщения
-		Text := update.Message.Text
-
-		// NewUsers := update.Message.NewChatMembers[]
-		log.Printf("%d %s", ChatID, Text)
-		var reply string
-		if update.Message.LeftChatMember.UserName != "" {
-			// В чат вошел новый пользователь
-			// Поприветствуем его
-			reply = fmt.Sprintf(`ъуъ съука @%s`,
-				update.Message.LeftChatMember.UserName)
-		}
-
-		if reply != "" {
-			// Созадаем сообщение
-			msg := tgbotapi.NewMessage(ChatID, reply)
-			// и отправляем его
-			bot.Send(msg)
-		}
-
 		msg := update.Message
 		if msg == nil {
 			continue
@@ -116,6 +91,29 @@ func main() {
 			case "silent":
 				disableNotify(msg, update)
 			}
+		}
+
+		if update.Message.NewChatMembers != nil {
+			var newUsers []string
+
+			for _, user := range *update.Message.NewChatMembers {
+				newUsers = append(newUsers, user.UserName)
+			}
+
+			joinedUsers := strings.Join(newUsers, " ")
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("@%s, поверь, в этом чате очко всегда сжато.", joinedUsers))
+			bot.Send(msg)
+		}
+
+		var reply string
+		if update.Message.LeftChatMember.UserName != "" {
+			reply = fmt.Sprintf(`ъуъ съука @%s`,
+				update.Message.LeftChatMember.UserName)
+		}
+
+		if reply != "" {
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, reply)
+			bot.Send(msg)
 		}
 	}
 
