@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
+	"log"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"gopkg.in/telegram-bot-api.v4"
-	"log"
+	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
 
 const (
@@ -16,6 +18,8 @@ const (
 var (
 	bot *tgbotapi.BotAPI
 	gdb *gorm.DB
+
+	TOKEN = "Your telegram bot api token"
 )
 
 // You must create bot_token.go file, which include TOKEN variable in global package scope
@@ -59,6 +63,32 @@ func main() {
 	}
 
 	for update := range updates {
+
+		// ID чата/диалога.
+		// Может быть идентификатором как чата с пользователем
+		// (тогда он равен UserID) так и публичного чата/канала
+		ChatID := update.Message.Chat.ID
+		// UserID := update.Message.UserID
+		// Текст сообщения
+		Text := update.Message.Text
+
+		// NewUsers := update.Message.NewChatMembers[]
+		log.Printf("%d %s", ChatID, Text)
+		var reply string
+		if update.Message.LeftChatMember.UserName != "" {
+			// В чат вошел новый пользователь
+			// Поприветствуем его
+			reply = fmt.Sprintf(`@%s, поверь, в этом чате очко всегда сжато.`,
+				update.Message.LeftChatMember.UserName)
+		}
+
+		if reply != "" {
+			// Созадаем сообщение
+			msg := tgbotapi.NewMessage(ChatID, reply)
+			// и отправляем его
+			bot.Send(msg)
+		}
+
 		msg := update.Message
 		if msg == nil {
 			continue
