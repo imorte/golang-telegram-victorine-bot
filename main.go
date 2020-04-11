@@ -18,8 +18,6 @@ const (
 var (
 	bot *tgbotapi.BotAPI
 	gdb *gorm.DB
-
-	TOKEN = "Your telegram bot api token"
 )
 
 // You must create bot_token.go file, which include TOKEN variable in global package scope
