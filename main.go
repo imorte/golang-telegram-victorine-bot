@@ -67,6 +67,30 @@ func main() {
 			continue
 		}
 
+		if update.Message.NewChatMembers != nil {
+			var newUsers []string
+
+			for _, user := range *update.Message.NewChatMembers {
+				newUsers = append(newUsers, user.UserName)
+			}
+
+			joinedUsers := strings.Join(newUsers, " ")
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("@%s, поверь, в этом чате очко всегда сжато.", joinedUsers))
+			bot.Send(msg)
+		}
+
+		var reply string
+		if update.Message.LeftChatMember.UserName != "" {
+
+			reply = fmt.Sprintf(`ъуъ съука @%s`,
+				update.Message.LeftChatMember.UserName)
+		}
+
+		if reply != "" {
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, reply)
+			bot.Send(msg)
+		}
+
 		if msg.IsCommand() {
 			command := msg.Command()
 			createGroupRecord(msg)
@@ -91,29 +115,6 @@ func main() {
 			case "silent":
 				disableNotify(msg, update)
 			}
-		}
-
-		if update.Message.NewChatMembers != nil {
-			var newUsers []string
-
-			for _, user := range *update.Message.NewChatMembers {
-				newUsers = append(newUsers, user.UserName)
-			}
-
-			joinedUsers := strings.Join(newUsers, " ")
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("@%s, поверь, в этом чате очко всегда сжато.", joinedUsers))
-			bot.Send(msg)
-		}
-
-		var reply string
-		if update.Message.LeftChatMember.UserName != "" {
-			reply = fmt.Sprintf(`ъуъ съука @%s`,
-				update.Message.LeftChatMember.UserName)
-		}
-
-		if reply != "" {
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, reply)
-			bot.Send(msg)
 		}
 	}
 
