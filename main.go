@@ -76,7 +76,7 @@ func main() {
 		if update.Message.LeftChatMember.UserName != "" {
 			// В чат вошел новый пользователь
 			// Поприветствуем его
-			reply = fmt.Sprintf(`@%s, поверь, в этом чате очко всегда сжато.`,
+			reply = fmt.Sprintf(`ъуъ съука @%s`,
 				update.Message.LeftChatMember.UserName)
 		}
 
