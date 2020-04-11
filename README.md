@@ -36,4 +36,4 @@ CMD ["go-wrapper", "run"]
 ```
 
 #### - Developers
-[synnz](https://github.com/synnz) and [LikiPiki](https://github.com/LikiPiki)
+[synnz](https://github.com/synnz), [LikiPiki](https://github.com/LikiPiki) and [endorphin82](https://github.com/endorphin82)
