@@ -97,8 +97,9 @@ func handleNewMembers(msg *tgbotapi.Message, update tgbotapi.Update) {
 
 	if msg != nil {
 		template := "@%s, поверь, в этом чате очко всегда сжато"
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf(template, (*msg.NewChatMembers)[0].UserName))
-		bot.Send(msg)
+		newMsg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf(template, (*msg.NewChatMembers)[0].UserName))
+		newMsg.ReplyToMessageID = msg.MessageID
+		bot.Send(newMsg)
 	}
 }
 
