@@ -3,9 +3,8 @@ package main
 import (
 	"fmt"
 	"gopkg.in/telegram-bot-api.v4"
-	"time"
-	//"os/user"
 	"strings"
+	"time"
 )
 
 func regpi(msg *tgbotapi.Message, update tgbotapi.Update) {
@@ -16,7 +15,6 @@ func regpi(msg *tgbotapi.Message, update tgbotapi.Update) {
 	groupId := msg.Chat.ID
 
 	gdb.Where("userId = ? AND groupId = ?", userId, groupId).First(&user)
-
 
 	if len(msg.From.UserName) == 0 {
 		reply = tgbotapi.NewMessage(msg.Chat.ID, "A girl has no name.")
@@ -66,11 +64,11 @@ func showpid(msg *tgbotapi.Message) {
 
 func pidorStat(msg *tgbotapi.Message) {
 	titles := map[int]string{
-		1 : "Пидоратор",
-		2 : "Пидороль",
-		3 : "Герцопидор",
-		4 : "Пиркиз",
-		5 : "Пидорон",
+		1: "Пидоратор",
+		2: "Пидороль",
+		3: "Герцопидор",
+		4: "Пиркиз",
+		5: "Пидорон",
 	}
 
 	var users []User
@@ -126,7 +124,7 @@ func pidorStat(msg *tgbotapi.Message) {
 }
 
 func startQuiz(msg *tgbotapi.Message) {
-	firstPhrases := []string {
+	firstPhrases := []string{
 		"Инициализирую поиск пидора дня...",
 		"Внимание, ищу пидора!",
 		"Ну-ка дай-ка...",
@@ -134,7 +132,7 @@ func startQuiz(msg *tgbotapi.Message) {
 		"Инициализация.Поиск.",
 	}
 
-	secondPhrases := []string {
+	secondPhrases := []string{
 		"Кажется я что-то вижу!",
 		"Не может быть!",
 		"Пожалуй препроверю...",
@@ -167,15 +165,15 @@ func startQuiz(msg *tgbotapi.Message) {
 			if lenOfCurrentUsers == 1 {
 				randomUser = 0
 			} else {
-				randomUser = random(0, lenOfCurrentUsers - 1)
+				randomUser = random(0, lenOfCurrentUsers-1)
 			}
 
 			gdb.Where("id = ?", users[randomUser].Id).First(&winner)
 
-			reply = tgbotapi.NewMessage(msg.Chat.ID, firstPhrases[random(0, len(firstPhrases) - 1)])
+			reply = tgbotapi.NewMessage(msg.Chat.ID, firstPhrases[random(0, len(firstPhrases)-1)])
 			bot.Send(reply)
 			time.Sleep(time.Second * 2)
-			reply = tgbotapi.NewMessage(msg.Chat.ID, secondPhrases[random(0, len(secondPhrases) - 1)])
+			reply = tgbotapi.NewMessage(msg.Chat.ID, secondPhrases[random(0, len(secondPhrases)-1)])
 			bot.Send(reply)
 			gdb.Where("id = ? and groupId = ?", theUser, groupId).First(&winner)
 			winnerScore = winner.Score + 1
@@ -218,19 +216,19 @@ func kekogen(msg *tgbotapi.Message) {
 
 	if user.Id > 0 {
 		if currentQuota > 1 {
-			vowels := []string {
-				"а", "о", "и", "е", "у",  "я",
+			vowels := []string{
+				"а", "о", "и", "е", "у", "я",
 			}
-			consonants := []string {
+			consonants := []string{
 				"в", "д", "к", "л", "м", "н", "п", "р", "с", "т", "ф", "х", "ш",
 			}
 			result := "кек"
 
-			for x:= 0; x < 5; x++ {
-				if x % 2 == 0 {
-					result += vowels[random(0, len(vowels) - 1)]
+			for x := 0; x < 5; x++ {
+				if x%2 == 0 {
+					result += vowels[random(0, len(vowels)-1)]
 				} else {
-					result += consonants[random(0, len(consonants) - 1)]
+					result += consonants[random(0, len(consonants)-1)]
 				}
 			}
 
@@ -271,7 +269,6 @@ func unreg(msg *tgbotapi.Message, update tgbotapi.Update) {
 		} else {
 			message = "Пользователь не существует"
 		}
-
 
 		reply := tgbotapi.NewMessage(msg.Chat.ID, message)
 		reply.ParseMode = tgbotapi.ModeMarkdown
