@@ -1,2 +1,4 @@
 db.sqlite3
 bot_token.go
+vendor
+.idea
