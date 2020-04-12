@@ -14,6 +14,8 @@ const (
 	TIMEOUT       = 60
 	DATABASE      = "sqlite3"
 	DATABASE_NAME = "db.sqlite3"
+
+	fuGroupID = int64(-1001134192058)
 )
 
 var (
@@ -77,6 +79,10 @@ func main() {
 }
 
 func handleLeftMembers(msg *tgbotapi.Message, update tgbotapi.Update) {
+	if msg.Chat.ID != fuGroupID {
+		return
+	}
+
 	if msg != nil {
 		newMsg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("нас покинул бротек @%s", update.Message.LeftChatMember.UserName))
 		newMsg.ReplyToMessageID = msg.MessageID
@@ -85,32 +91,13 @@ func handleLeftMembers(msg *tgbotapi.Message, update tgbotapi.Update) {
 }
 
 func handleNewMembers(msg *tgbotapi.Message, update tgbotapi.Update) {
-	newUsers := make([]string, 0, len(*msg.NewChatMembers))
-	for _, user := range *update.Message.NewChatMembers {
-		newUsers = append(newUsers, user.UserName)
+	if msg.Chat.ID != fuGroupID {
+		return
 	}
 
-	var joinedUsers string
-	for i, v := range newUsers {
-		joinedUsers += v
-		if i != len(newUsers)-1 {
-			joinedUsers += ", "
-			continue
-		}
-
-		joinedUsers += " "
-	}
-
-	template := "@%s, %s, в этом чате очко всегда сжато"
-	var form string
 	if msg != nil {
-		if len(joinedUsers) > 1 {
-			form = "поверьте"
-		} else {
-			form = "поверь"
-		}
-
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf(template, joinedUsers, form))
+		template := "@%s, поверь, в этом чате очко всегда сжато"
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf(template, (*msg.NewChatMembers)[0].UserName))
 		bot.Send(msg)
 	}
 }
